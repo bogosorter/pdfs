@@ -1,0 +1,3 @@
+source = read('source.pdf');
+result = source[:3] + [4:];
+write('result.pdf', result);
