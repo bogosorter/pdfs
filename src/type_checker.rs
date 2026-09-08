@@ -85,6 +85,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
     }
 }
 
+// Initializes an environment with the built-in function
 fn initial_state() -> State {
     let mut state = HashMap::new();
     state.insert(String::from("read"), Type::Function(vec![Type::String], Box::new(Type::PDF)));

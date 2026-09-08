@@ -50,10 +50,11 @@ fn parse_statement(statement: Pair<'_, Rule>) -> Statement<()> {
 
 fn parse_expression(expression: Pair<'_, Rule>) -> Expression<()> {
     let mut children = expression.into_inner();
-    let mut atom = children.next().unwrap().into_inner();
-    let mut result = parse_atom(atom.next().unwrap());
 
-    for call in atom {
+    let atom = children.next().unwrap().into_inner().next().unwrap();
+    let mut result = parse_atom(atom);
+
+    for call in children {
         let arguments = call.into_inner().map(parse_expression).collect();
         result = Expression::FunctionCall(Box::new(result), arguments, ());
     }
@@ -64,8 +65,9 @@ fn parse_expression(expression: Pair<'_, Rule>) -> Expression<()> {
 fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
     match atom.as_rule() {
         Rule::string_literal => {
-            let content = atom.into_inner().next().unwrap().as_str();
-            Expression::StringLiteral(String::from(content))
+            let content = atom.as_str();
+            let trimmed = &content[1..content.len() - 1];
+            Expression::StringLiteral(String::from(trimmed))
         },
         Rule::identifier => {
             let content = atom.as_str();

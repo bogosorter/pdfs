@@ -11,6 +11,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 // Simple copy-paste program
 const CODE: &str = "
-pdf = read('example.pdf');
-write('example.pdf', pdf);
+pdf = read('test.pdf');
+write('output.pdf', pdf);
 ";

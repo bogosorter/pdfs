@@ -1,6 +1,7 @@
 use lopdf::{dictionary, Dictionary, Document, Object, ObjectId, Stream};
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct PDF {
     doc: Document,
 }
