@@ -1,9 +1,12 @@
-use pdfs::pdf::{PDF, ReadError};
+use pdfs::pdf::{PDF, Page, ReadError};
 
 fn main() {
-    match PDF::read("test.pdf") {
-        Ok(file) => file.write("output.pdf"),
-        Err(ReadError::FileNotFound) => println!("couldn't find file"),
-        Err(ReadError::InternalError) => println!("internal error")
-    }
+    let file = match PDF::read("test.pdf") {
+        Ok(file) => file,
+        Err(ReadError::FileNotFound) => panic!("couldn't find file"),
+        Err(ReadError::InternalError) => panic!("internal error")
+    };
+
+    let pages: Vec<Page> = file.pages().into_iter().step_by(2).collect();
+    PDF::from(pages).write("output.pdf");
 }
