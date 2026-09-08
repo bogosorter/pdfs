@@ -1,0 +1,14 @@
+WHITESPACE = _{ " " | NEWLINE }
+
+program = { SOI ~ statement* ~ EOI }
+
+    statement = { assignment | expression_statement }
+        assignment = { identifier ~ "=" ~ expression ~ ";" }
+        expression_statement = { expression ~ ";" }
+
+    identifier = { ASCII_ALPHA_LOWER ~ ASCII_ALPHA* }
+    expression = { atom ~ call* }
+        atom = { string_literal | identifier }
+            string_literal = { "'" ~ (!"'" ~ ANY)* ~ "'"}
+        // For now, we only allow single-argumment function calls
+        call = { "(" ~ expression ~ ("," ~ expression)* ~ ")" }
