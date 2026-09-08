@@ -1,4 +1,4 @@
-use crate::ast::Program;
+use crate::ast::UntypedProgram;
 
 use std::error::Error;
 use std::fmt::Display;
@@ -6,7 +6,7 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub struct ParserError;
 
-pub fn parse(text: &str) -> Result<Program, ParserError> {
+pub fn parse(text: &str) -> Result<UntypedProgram, ParserError> {
     panic!("parse is not implemented");
 }
 

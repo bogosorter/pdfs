@@ -1,4 +1,4 @@
-use crate::ast::{Program, TypedProgram};
+use crate::ast::{UntypedProgram, TypedProgram};
 
 use std::error::Error;
 use std::fmt::Display;
@@ -6,7 +6,7 @@ use std::fmt::Display;
 #[derive(Debug)]
 pub struct TypeCheckerError;
 
-pub fn type_check(program: &Program) -> Result<TypedProgram, TypeCheckerError> {
+pub fn type_check(program: &UntypedProgram) -> Result<TypedProgram, TypeCheckerError> {
     panic!("type_check is not implemented");
 }
 
