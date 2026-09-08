@@ -1,12 +1,16 @@
-use pdfs::pdf::{PDF, Page, ReadError};
+use pdfs::{parser::parse, type_checker::type_check, interpreter::interpret};
+use std::error::Error;
 
-fn main() {
-    let file = match PDF::read("test.pdf") {
-        Ok(file) => file,
-        Err(ReadError::FileNotFound) => panic!("couldn't find file"),
-        Err(ReadError::InternalError) => panic!("internal error")
-    };
+fn main() -> Result<(), Box<dyn Error>> {
+    let parsed = parse(CODE)?;
+    let typed = type_check(&parsed)?;
+    interpret(&typed)?;
 
-    let pages: Vec<Page> = file.pages().into_iter().step_by(2).collect();
-    PDF::from(pages).write("output.pdf");
+    Ok(())
 }
+
+// Simple copy-paste program
+const CODE: &str = "
+pdf = read('example.pdf');
+write('example.pdf', pdf);
+";
