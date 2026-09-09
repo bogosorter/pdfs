@@ -1,20 +1,26 @@
-use crate::ast::Statement::{Assignment, ExpressionStatement};
 use crate::ast::*;
+use crate::error::Error;
 use pest::{Parser, iterators::Pair};
 use pest_derive::Parser;
-
-use std::error::Error;
-use std::fmt::Display;
-
-#[derive(Debug)]
-pub struct ParserError(pest::error::Error<Rule>);
+use pest::error::InputLocation;
 
 #[derive(Parser)]
 #[grammar = "parser/grammar.pest"]
 struct PestParser;
 
-pub fn parse(text: &str) -> Result<UntypedProgram, ParserError> {
-    let mut parsed = PestParser::parse(Rule::program, text).map_err(ParserError)?;
+pub fn parse<'a>(text: &str) -> Result<UntypedProgram, Error> {
+    let mut parsed = match PestParser::parse(Rule::program, text) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            let message = error.variant.message().to_string();
+            let range = match error.location {
+                InputLocation::Pos(p) => p..p + 1,
+                InputLocation::Span((s, e)) => s..e,
+            };
+
+            return Err(Error::new(message, range));
+        }
+    };
     let rule = parsed.next().unwrap();
 
     let mut statements = Vec::new();
@@ -33,22 +39,25 @@ pub fn parse(text: &str) -> Result<UntypedProgram, ParserError> {
 }
 
 fn parse_statement(statement: Pair<'_, Rule>) -> Statement<()> {
+    let range = statement.as_span().start()..statement.as_span().end();
     match statement.as_rule() {
         Rule::assignment => {
             let mut children = statement.into_inner();
             let identifier = children.next().unwrap().as_str();
             let expression = parse_expression(children.next().unwrap());
-            Assignment(String::from(identifier), expression)
+
+            Statement::Assignment(String::from(identifier), expression, range)
         },
         Rule::expression_statement => {
             let content = parse_expression(statement.into_inner().next().unwrap());
-            ExpressionStatement(content)
+            Statement::ExpressionStatement(content, range)
         },
         _ => unreachable!()
     }
 }
 
 fn parse_expression(expression: Pair<'_, Rule>) -> Expression<()> {
+    let range = expression.as_span().start()..expression.as_span().end();
     let mut children = expression.into_inner();
 
     let atom = children.next().unwrap().into_inner().next().unwrap();
@@ -56,32 +65,24 @@ fn parse_expression(expression: Pair<'_, Rule>) -> Expression<()> {
 
     for call in children {
         let arguments = call.into_inner().map(parse_expression).collect();
-        result = Expression::FunctionCall(Box::new(result), arguments, ());
+        result = Expression::FunctionCall(Box::new(result), arguments, range.clone(), ());
     }
 
     result
 }
 
 fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
+    let range = atom.as_span().start()..atom.as_span().end();
     match atom.as_rule() {
         Rule::string_literal => {
             let content = atom.as_str();
             let trimmed = &content[1..content.len() - 1];
-            Expression::StringLiteral(String::from(trimmed))
+            Expression::StringLiteral(String::from(trimmed), range)
         },
         Rule::identifier => {
             let content = atom.as_str();
-            Expression::Variable(String::from(content), ())
+            Expression::Variable(String::from(content), range, ())
         }
         _ => unreachable!()
     }
 }
-
-
-impl Display for ParserError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Error for ParserError {}

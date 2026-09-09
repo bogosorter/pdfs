@@ -1,22 +1,23 @@
 use pdfs::{parser::parse, type_checker::type_check, interpreter::interpret};
 
-use std::error::Error;
 use std::fs::File;
 use std::io::Read;
 use std::process;
 use std::env;
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let arguments: Vec<_> = env::args().collect();
     if arguments.len() != 2 {
         eprintln!("usage: pdfs [filename]");
         process::exit(1);
     }
 
-    let mut file = match File::open(&arguments[1]) {
+    let path = &arguments[1];
+
+    let mut file = match File::open(path) {
         Ok(file) => file,
         Err(_) => {
-            eprintln!("couldn't open {}", arguments[1]);
+            eprintln!("couldn't open {}", path);
             process::exit(1)
         }
     };
@@ -30,9 +31,27 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let parsed = parse(&content)?;
-    let typed = type_check(&parsed)?;
-    interpret(&typed)?;
+    let parsed = match parse(&content) {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            eprintln!("{}", error.to_string(path, &content));
+            process::exit(1);
+        }
+    };
 
-    Ok(())
+    let typed = match type_check(&parsed) {
+        Ok(typed) => typed,
+        Err(error) => {
+            eprintln!("{}", error.to_string(path, &content));
+            process::exit(1);
+        }
+    };
+
+    match interpret(&typed) {
+        Ok(_) => {},
+        Err(error) => {
+            eprintln!("{}", error.to_string(path, &content));
+            process::exit(1);
+        }
+    }
 }

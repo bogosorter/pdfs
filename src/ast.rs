@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::ops::Range;
 
 pub type UntypedProgram = Program<()>;
 pub type TypedProgram = Program<Type>;
@@ -14,22 +15,22 @@ pub enum Type {
 }
 
 pub enum Statement<T> {
-    Assignment(String, Expression<T>),
-    ExpressionStatement(Expression<T>)
+    Assignment(String, Expression<T>, Range<usize>),
+    ExpressionStatement(Expression<T>, Range<usize>)
 }
 
 pub enum Expression<T> {
-    StringLiteral(String),
-    Variable(String, T),
-    FunctionCall(Box<Expression<T>>, Vec<Expression<T>>, T)
+    StringLiteral(String, Range<usize>),
+    Variable(String, Range<usize>, T),
+    FunctionCall(Box<Expression<T>>, Vec<Expression<T>>, Range<usize>, T)
 }
 
 impl Expression<Type> {
     pub fn t(&self) -> Type {
         match self {
-            Expression::StringLiteral(_) => Type::String,
-            Expression::Variable(_, t) => t.clone(),
-            Expression::FunctionCall(_, _, t) => t.clone()
+            Expression::StringLiteral(_, _) => Type::String,
+            Expression::Variable(_, _, t) => t.clone(),
+            Expression::FunctionCall(_, _, _, t) => t.clone()
         }
     }
 }

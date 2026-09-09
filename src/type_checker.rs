@@ -1,14 +1,11 @@
 use crate::ast::*;
+use crate::error::Error;
 
-use std::error::Error;
-use std::fmt::Display;
 use std::collections::HashMap;
-
-#[derive(Debug)]
-pub struct TypeCheckerError(String);
+use std::ops::Range;
 
 type State = HashMap<String, Type>;
-type TypingResult<T> = Result<T, TypeCheckerError>;
+type TypingResult<T> = Result<T, Error>;
 
 pub fn type_check(program: &UntypedProgram) -> TypingResult<TypedProgram> {
     let mut state = initial_state();
@@ -24,35 +21,35 @@ pub fn type_check(program: &UntypedProgram) -> TypingResult<TypedProgram> {
 
 fn type_check_statement(state: &mut State, statement: &Statement<()>) -> TypingResult<Statement<Type>> {
     match statement {
-        Statement::Assignment(name, expression) => {
+        Statement::Assignment(name, expression, range) => {
             let typed_expression = type_check_expression(state, expression)?;
             state.insert(name.clone(), typed_expression.t());
-            Ok(Statement::Assignment(name.clone(), typed_expression))
+            Ok(Statement::Assignment(name.clone(), typed_expression, range.clone()))
         },
-        Statement::ExpressionStatement(expression) => {
+        Statement::ExpressionStatement(expression, range) => {
             let typed_expression = type_check_expression(state, expression)?;
-            Ok(Statement::ExpressionStatement(typed_expression))
+            Ok(Statement::ExpressionStatement(typed_expression, range.clone()))
         }
     }
 }
 
 fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingResult<Expression<Type>> {
     match expression {
-        Expression::StringLiteral(s) => Ok(Expression::StringLiteral(s.clone())),
+        Expression::StringLiteral(s, range) => Ok(Expression::StringLiteral(s.clone(), range.clone())),
 
-        Expression::Variable(name, _) => {
+        Expression::Variable(name, range, _) => {
             if let Some(t) = state.get(name) {
-                Ok(Expression::Variable(name.clone(), t.clone()))
+                Ok(Expression::Variable(name.clone(), range.clone(), t.clone()))
             } else {
-                type_error(&format!("variable {name} is not defined"))
+                type_error(&format!("variable {name} is not defined"), range)
             }
         },
 
-        Expression::FunctionCall(function, arguments, _) => {
+        Expression::FunctionCall(function, arguments, range, _) => {
             let typed_function = type_check_expression(state, function)?;
             let (argument_types, return_type) = match typed_function.t() {
                 Type::Function(argument_types, return_type) => (argument_types, return_type),
-                _ => return type_error(&format!("trying to call an expression that is not a function"))
+                _ => return type_error(&format!("trying to call an expression that is not a function"), range)
             };
 
             let mut typed_arguments = Vec::new();
@@ -66,7 +63,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
                     "trying to call a function that accepts {} arguments with {} arguments",
                     argument_types.len(),
                     typed_arguments.len()
-                ));
+                ), range);
             }
 
             let provided_types = typed_arguments.iter().map(Expression::t);
@@ -76,11 +73,11 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
                         "expected an argument of type {}, but got an argument of type {}",
                         *expected,
                         actual
-                    ));
+                    ), range);
                 }
             }
 
-            Ok(Expression::FunctionCall(Box::new(typed_function), typed_arguments, *return_type))
+            Ok(Expression::FunctionCall(Box::new(typed_function), typed_arguments, range.clone(), *return_type))
         }
     }
 }
@@ -93,14 +90,6 @@ fn initial_state() -> State {
     state
 }
 
-fn type_error(message: &str) -> TypingResult<Expression<Type>> {
-    Err(TypeCheckerError(String::from(message)))
+fn type_error(message: &str, range: &Range<usize>) -> TypingResult<Expression<Type>> {
+    Err(Error::new(String::from(message), range.clone()))
 }
-
-impl Display for TypeCheckerError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Error for TypeCheckerError {}
