@@ -67,6 +67,14 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
                         _ => unreachable!("arguments to write have been type-checked")
                     }
                 },
+                Value::BuiltIn(BuiltInExpression::Concatenate) => {
+                    let left = interpret_expression(state, &arguments[0])?;
+                    let right = interpret_expression(state, &arguments[1])?;
+                    match (left, right) {
+                        (Value::PDF(left), Value::PDF(right)) => concatenate(&left, &right),
+                        _ => unreachable!("arguments to write have been type-checked")
+                    }
+                },
                 _ => unreachable!("only built-in function calls are allowed")
             }
         }
@@ -84,4 +92,11 @@ fn read(path: &str, range: &Range<usize>) -> InterpreterResult<Value> {
 fn write(path: &str, pdf: &PDF) -> InterpreterResult<Value> {
     pdf.write(path);
     Ok(Value::Unit)
+}
+
+fn concatenate(left: &PDF, right: &PDF) -> InterpreterResult<Value> {
+    let mut pages = left.pages();
+    pages.extend(right.pages());
+    let result = PDF::from(pages);
+    Ok(Value::PDF(result))
 }

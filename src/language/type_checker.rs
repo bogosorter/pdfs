@@ -51,6 +51,8 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
                 Ok(Expression::BuiltIn(BuiltInExpression::Read, range.clone()))
             } else if name == "write" {
                 Ok(Expression::BuiltIn(BuiltInExpression::Write, range.clone()))
+            } else if name == ">>" {
+                Ok(Expression::BuiltIn(BuiltInExpression::Concatenate, range.clone()))
             } else {
                 type_error(&format!("variable {name} is not defined"), range)
             }

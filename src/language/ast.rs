@@ -30,7 +30,8 @@ pub enum Expression<T> {
 #[derive(Clone, Copy)]
 pub enum BuiltInExpression {
     Read,
-    Write
+    Write,
+    Concatenate
 }
 
 
@@ -39,6 +40,7 @@ impl Expression<Type> {
         match self {
             Expression::BuiltIn(BuiltInExpression::Read, _) => Type::Function(vec![Type::String], Box::new(Type::PDF)),
             Expression::BuiltIn(BuiltInExpression::Write, _) => Type::Function(vec![Type::String, Type::PDF], Box::new(Type::Unit)),
+            Expression::BuiltIn(BuiltInExpression::Concatenate, _) => Type::Function(vec![Type::PDF, Type::PDF], Box::new(Type::PDF)),
             Expression::StringLiteral(_, _) => Type::String,
             Expression::Variable(_, _, t) => t.clone(),
             Expression::FunctionCall(_, _, _, t) => t.clone()

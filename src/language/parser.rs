@@ -63,6 +63,22 @@ fn parse_expression(expression: Pair<'_, Rule>) -> Expression<()> {
     let range = expression.as_span().start()..expression.as_span().end();
     let mut children = expression.into_inner();
 
+    let term = children.next().unwrap();
+    let mut result = parse_term(term);
+
+    for concatenation in children {
+        let concatenee = parse_term(concatenation);
+        let function = Expression::Variable(String::from(">>"), range.clone(), ());
+        result = Expression::FunctionCall(Box::new(function), vec![result, concatenee], range.clone(), ());
+    }
+
+    result
+}
+
+fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
+    let range = term.as_span().start()..term.as_span().end();
+    let mut children = term.into_inner();
+
     let atom = children.next().unwrap().into_inner().next().unwrap();
     let mut result = parse_atom(atom);
 
