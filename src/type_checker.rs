@@ -8,7 +8,7 @@ type State = HashMap<String, Type>;
 type TypingResult<T> = Result<T, Error>;
 
 pub fn type_check(program: &UntypedProgram) -> TypingResult<TypedProgram> {
-    let mut state = initial_state();
+    let mut state = HashMap::new();
 
     let mut typed_statements = Vec::new();
     for statement in program.0.iter() {
@@ -45,6 +45,10 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
         Expression::Variable(name, range, _) => {
             if let Some(t) = state.get(name) {
                 Ok(Expression::Variable(name.clone(), range.clone(), t.clone()))
+            } else if name == "read" {
+                Ok(Expression::BuiltIn(BuiltInExpression::Read, range.clone()))
+            } else if name == "write" {
+                Ok(Expression::BuiltIn(BuiltInExpression::Write, range.clone()))
             } else {
                 type_error(&format!("variable {name} is not defined"), range)
             }
@@ -83,16 +87,10 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             }
 
             Ok(Expression::FunctionCall(Box::new(typed_function), typed_arguments, range.clone(), *return_type))
-        }
-    }
-}
+        },
 
-// Initializes an environment with the built-in function
-fn initial_state() -> State {
-    let mut state = HashMap::new();
-    state.insert(String::from("read"), Type::Function(vec![Type::String], Box::new(Type::PDF)));
-    state.insert(String::from("write"), Type::Function(vec![Type::String, Type::PDF], Box::new(Type::Unit)));
-    state
+        Expression::BuiltIn(_, _) => unreachable!("built-ins are only introduced in type-checking")
+    }
 }
 
 fn type_error<T>(message: &str, range: &Range<usize>) -> TypingResult<T> {

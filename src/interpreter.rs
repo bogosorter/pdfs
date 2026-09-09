@@ -11,7 +11,8 @@ use std::ops::Range;
 enum Value {
     Unit,
     String(String),
-    PDF(PDF)
+    PDF(PDF),
+    BuiltIn(BuiltInExpression)
 }
 
 type State = HashMap<String, Value>;
@@ -43,10 +44,13 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
     match expression {
         Expression::StringLiteral(s, _) => Ok(Value::String(s.clone())),
         Expression::Variable(name, _, _) => Ok(state.get(name).unwrap().clone()),
+        Expression::BuiltIn(t, _) => Ok(Value::BuiltIn(*t)),
 
         Expression::FunctionCall(function, arguments, range, _) => {
-            match function.as_ref() {
-                Expression::Variable(name, _, _) if name == "read" => {
+            let interpreted_function = interpret_expression(state, function)?;
+
+            match interpreted_function {
+                Value::BuiltIn(BuiltInExpression::Read) => {
                     let path = interpret_expression(state, &arguments[0])?;
                     if let Value::String(p) = path {
                         read(&p, range)
@@ -54,7 +58,7 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
                         unreachable!("arguments to read have been type-checked");
                     }
                 },
-                Expression::Variable(name, _, _) if name == "write" => {
+                Value::BuiltIn(BuiltInExpression::Write) => {
                     let path = interpret_expression(state, &arguments[0])?;
                     let pdf = interpret_expression(state, &arguments[1])?;
                     if let Value::String(a) = path && let Value::PDF(b) = pdf {

@@ -20,14 +20,23 @@ pub enum Statement<T> {
 }
 
 pub enum Expression<T> {
+    BuiltIn(BuiltInExpression, Range<usize>),
     StringLiteral(String, Range<usize>),
     Variable(String, Range<usize>, T),
     FunctionCall(Box<Expression<T>>, Vec<Expression<T>>, Range<usize>, T)
 }
 
+#[derive(Clone, Copy)]
+pub enum BuiltInExpression {
+    Read,
+    Write
+}
+
 impl Expression<Type> {
     pub fn t(&self) -> Type {
         match self {
+            Expression::BuiltIn(BuiltInExpression::Read, _) => Type::Function(vec![Type::String], Box::new(Type::PDF)),
+            Expression::BuiltIn(BuiltInExpression::Write, _) => Type::Function(vec![Type::String, Type::PDF], Box::new(Type::Unit)),
             Expression::StringLiteral(_, _) => Type::String,
             Expression::Variable(_, _, t) => t.clone(),
             Expression::FunctionCall(_, _, _, t) => t.clone()
