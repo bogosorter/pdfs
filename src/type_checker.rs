@@ -23,6 +23,11 @@ fn type_check_statement(state: &mut State, statement: &Statement<()>) -> TypingR
     match statement {
         Statement::Assignment(name, expression, range) => {
             let typed_expression = type_check_expression(state, expression)?;
+
+            if typed_expression.t() == Type::Unit {
+                return type_error(&format!("cannot assign values of type {}", Type::Unit), range);
+            }
+
             state.insert(name.clone(), typed_expression.t());
             Ok(Statement::Assignment(name.clone(), typed_expression, range.clone()))
         },
@@ -90,6 +95,6 @@ fn initial_state() -> State {
     state
 }
 
-fn type_error(message: &str, range: &Range<usize>) -> TypingResult<Expression<Type>> {
+fn type_error<T>(message: &str, range: &Range<usize>) -> TypingResult<T> {
     Err(Error::new(String::from(message), range.clone()))
 }
