@@ -1,15 +1,10 @@
-use annotate_snippets::{Level, Renderer, Snippet, AnnotationKind};
 use std::ops::Range;
+use annotate_snippets::{Level, Renderer, Snippet, AnnotationKind};
+
 
 pub struct Error {
     message: String,
     range: Range<usize>
-}
-
-pub enum ErrorType {
-    ParseError,
-    TypeError,
-    InterpreterError
 }
 
 impl Error {

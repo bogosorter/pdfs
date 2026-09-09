@@ -1,6 +1,2 @@
-pub mod pdf;
-pub mod ast;
-pub mod parser;
-pub mod type_checker;
-pub mod interpreter;
-pub mod error;
+pub mod language;
+pub mod utils;

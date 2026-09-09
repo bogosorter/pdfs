@@ -1,11 +1,14 @@
-use crate::ast::*;
-use crate::error::Error;
 use pest::{Parser, iterators::Pair};
 use pest_derive::Parser;
 use pest::error::InputLocation;
+use crate::{
+    language::ast::*,
+    utils::error::Error
+};
+
 
 #[derive(Parser)]
-#[grammar = "parser/grammar.pest"]
+#[grammar = "language/grammar.pest"]
 struct PestParser;
 
 pub fn parse<'a>(text: &str) -> Result<UntypedProgram, Error> {
@@ -21,8 +24,8 @@ pub fn parse<'a>(text: &str) -> Result<UntypedProgram, Error> {
             return Err(Error::new(message, range));
         }
     };
-    let rule = parsed.next().unwrap();
 
+    let rule = parsed.next().unwrap();
     let mut statements = Vec::new();
     for line in rule.into_inner() {
         match line.as_rule() {

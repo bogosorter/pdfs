@@ -1,8 +1,10 @@
-use crate::ast::*;
-use crate::error::Error;
-
 use std::collections::HashMap;
 use std::ops::Range;
+use crate::{
+    language::ast::*,
+    utils::error::Error
+};
+
 
 type State = HashMap<String, Type>;
 type TypingResult<T> = Result<T, Error>;

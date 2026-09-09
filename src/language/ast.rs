@@ -1,6 +1,7 @@
 use std::fmt::Display;
 use std::ops::Range;
 
+
 pub type UntypedProgram = Program<()>;
 pub type TypedProgram = Program<Type>;
 
@@ -31,6 +32,7 @@ pub enum BuiltInExpression {
     Read,
     Write
 }
+
 
 impl Expression<Type> {
     pub fn t(&self) -> Type {

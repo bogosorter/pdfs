@@ -1,3 +1,8 @@
+// WARNING
+// To thee, stranger, I confess: this module I have blatantly vibe-coded.
+// Once I taketh this project in earnest, I will revisit it.
+
+
 use lopdf::{dictionary, Dictionary, Document, Object, ObjectId, Stream};
 use std::collections::HashMap;
 
@@ -14,6 +19,63 @@ pub struct Page {
 pub enum ReadError {
     FileNotFound,
     InternalError,
+}
+
+impl PDF {
+    pub fn read(path: &str) -> Result<PDF, ReadError> {
+        match Document::load(path) {
+            Ok(doc) => Ok(PDF { doc }),
+            Err(lopdf::Error::IO(e)) if e.kind() == std::io::ErrorKind::NotFound => {
+                Err(ReadError::FileNotFound)
+            }
+            Err(_) => Err(ReadError::InternalError),
+        }
+    }
+
+    pub fn from(pages: Vec<Page>) -> PDF {
+        let mut doc = Document::with_version("1.5");
+        let page_ids: Vec<ObjectId> = pages
+            .into_iter()
+            .map(|page| {
+                let mut cache = HashMap::new();
+                copy_object_deep(&page.doc, &mut doc, page.page_id, &mut cache)
+            })
+            .collect();
+        finalize_document(&mut doc, page_ids);
+        PDF { doc }
+    }
+
+    pub fn pages(&self) -> Vec<Page> {
+        self.doc
+            .get_pages()
+            .into_values()
+            .map(|id| self.extract_page(id))
+            .collect()
+    }
+
+    pub fn page(&self, i: usize) -> Page {
+        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
+        self.extract_page(ids[i])
+    }
+
+    fn extract_page(&self, id: ObjectId) -> Page {
+        let mut mini = Document::with_version(self.doc.version.clone());
+        let mut cache = HashMap::new();
+        let new_id = copy_object_deep(&self.doc, &mut mini, id, &mut cache);
+        finalize_document(&mut mini, vec![new_id]);
+        Page { doc: mini, page_id: new_id }
+    }
+
+    pub fn concatenate(&self, other: &PDF) -> PDF {
+        let mut pages = self.pages();
+        pages.extend(other.pages());
+        PDF::from(pages)
+    }
+
+    pub fn write(&self, path: &str) {
+        let mut doc = self.doc.clone();
+        doc.save(path).expect("failed to write PDF");
+    }
 }
 
 /// Recursively copies `id` and everything it references from `src` into `dst`,
@@ -100,61 +162,4 @@ fn finalize_document(doc: &mut Document, page_ids: Vec<ObjectId>) {
     );
 
     doc.trailer.set("Root", Object::Reference(catalog_id));
-}
-
-impl PDF {
-    pub fn read(path: &str) -> Result<PDF, ReadError> {
-        match Document::load(path) {
-            Ok(doc) => Ok(PDF { doc }),
-            Err(lopdf::Error::IO(e)) if e.kind() == std::io::ErrorKind::NotFound => {
-                Err(ReadError::FileNotFound)
-            }
-            Err(_) => Err(ReadError::InternalError),
-        }
-    }
-
-    pub fn from(pages: Vec<Page>) -> PDF {
-        let mut doc = Document::with_version("1.5");
-        let page_ids: Vec<ObjectId> = pages
-            .into_iter()
-            .map(|page| {
-                let mut cache = HashMap::new();
-                copy_object_deep(&page.doc, &mut doc, page.page_id, &mut cache)
-            })
-            .collect();
-        finalize_document(&mut doc, page_ids);
-        PDF { doc }
-    }
-
-    pub fn pages(&self) -> Vec<Page> {
-        self.doc
-            .get_pages()
-            .into_values()
-            .map(|id| self.extract_page(id))
-            .collect()
-    }
-
-    pub fn page(&self, i: usize) -> Page {
-        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        self.extract_page(ids[i])
-    }
-
-    fn extract_page(&self, id: ObjectId) -> Page {
-        let mut mini = Document::with_version(self.doc.version.clone());
-        let mut cache = HashMap::new();
-        let new_id = copy_object_deep(&self.doc, &mut mini, id, &mut cache);
-        finalize_document(&mut mini, vec![new_id]);
-        Page { doc: mini, page_id: new_id }
-    }
-
-    pub fn concatenate(&self, other: &PDF) -> PDF {
-        let mut pages = self.pages();
-        pages.extend(other.pages());
-        PDF::from(pages)
-    }
-
-    pub fn write(&self, path: &str) {
-        let mut doc = self.doc.clone();
-        doc.save(path).expect("failed to write PDF");
-    }
 }

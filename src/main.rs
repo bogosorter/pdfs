@@ -1,4 +1,4 @@
-use pdfs::{parser::parse, type_checker::type_check, interpreter::interpret};
+use pdfs::language::{parser::parse, type_checker::type_check, interpreter::interpret};
 
 use std::fs::File;
 use std::io::Read;

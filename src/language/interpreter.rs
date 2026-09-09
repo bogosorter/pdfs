@@ -1,12 +1,14 @@
-use crate::ast::*;
-use crate::pdf::{PDF, ReadError};
-use crate::error::Error;
-
 use std::collections::HashMap;
 use std::ops::Range;
+use crate::{
+    language::ast::*,
+    utils::{
+        pdf::{PDF, ReadError},
+        error::Error
+    }
+};
 
-// Despite the existence of a type for functions, they do not have a
-// corresponding value, since they are built-in.
+
 #[derive(Clone)]
 enum Value {
     Unit,
@@ -52,19 +54,17 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
             match interpreted_function {
                 Value::BuiltIn(BuiltInExpression::Read) => {
                     let path = interpret_expression(state, &arguments[0])?;
-                    if let Value::String(p) = path {
-                        read(&p, range)
-                    } else {
-                        unreachable!("arguments to read have been type-checked");
+                    match path {
+                        Value::String(path) => read(&path, range),
+                        _ => unreachable!("arguments to read have been type-checked")
                     }
                 },
                 Value::BuiltIn(BuiltInExpression::Write) => {
                     let path = interpret_expression(state, &arguments[0])?;
                     let pdf = interpret_expression(state, &arguments[1])?;
-                    if let Value::String(a) = path && let Value::PDF(b) = pdf {
-                        write(&a, &b)
-                    } else {
-                        unreachable!("arguments to write have been type-checked");
+                    match (path, pdf) {
+                        (Value::String(path), Value::PDF(pdf)) => write(&path, &pdf),
+                        _ => unreachable!("arguments to write have been type-checked")
                     }
                 },
                 _ => unreachable!("only built-in function calls are allowed")
