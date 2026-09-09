@@ -1,12 +1,12 @@
 use crate::ast::*;
-use crate::pdf::PDF;
+use crate::pdf::{PDF, ReadError};
 
 use std::error::Error;
 use std::fmt::Display;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct InterpreterError;
+pub struct InterpreterError(String);
 
 // Despite the existence of a type for functions, they do not have a
 // corresponding value, since they are built-in.
@@ -75,7 +75,8 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
 fn read(path: &str) -> InterpreterResult<Value> {
     match PDF::read(path) {
         Ok(pdf) => Ok(Value::PDF(pdf)),
-        Err(_) => Err(InterpreterError)
+        Err(ReadError::FileNotFound) => Err(InterpreterError(format!("couldn't find file {}", path))),
+        Err(_) => Err(InterpreterError(String::from("internal error")))
     }
 }
 
@@ -86,7 +87,7 @@ fn write(path: &str, pdf: &PDF) -> InterpreterResult<Value> {
 
 impl Display for InterpreterError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "internal error")
+        write!(f, "{}", self.0)
     }
 }
 
