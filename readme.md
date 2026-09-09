@@ -10,7 +10,7 @@ PDFs are complicated things. Their myriad intricacies result in equally complica
 
 This complexity is necessary for any general-purpose PDF tool. Some operations we commonly need to perform, though, are very simple and should not require it. I've found myself vibe-coding entire scripts just to insert a blank page between every non-blank page.
 
-_pdfs_, short for PDF Scripting Language, is intentionally narrow-scoped. It is built to provide an easy way to perform structural manipulations on documents. PDFs are treated as lists of pages, which can be extracted and combined to form new documents. The following code, for instance, is used to join two PDFs:
+_pdfs_, short for PDF Scripting Language, is intentionally narrow-scoped. It is built to provide an easy way to perform structural manipulations on documents (i.e., adding, removing and rearranging pages, but not modifying their contents). PDFs are treated as lists of pages, which can be extracted and combined to form new documents. The following code, for instance, is used to join two PDFs:
 
 ```
 left = read('left.pdf');
