@@ -1,10 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Range;
 use crate::{
-    language::ast::*,
-    utils::{
-        pdf::{PDF, Page, ReadError},
-        error::Error
+    language::ast::*, utils::{
+        error::Error, pdf::{OutOfBounds, PDF, Page, ReadError}
     }
 };
 
@@ -82,11 +80,11 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
             }
         },
 
-        Expression::Index(base, index, _) => {
+        Expression::Index(base, index, range) => {
             let interpreted_base = interpret_expression(state, base)?;
             let interpreted_index = interpret_expression(state, index)?;
             match (interpreted_base, interpreted_index) {
-                (Value::PDF(pdf), Value::Integer(i)) => Ok(Value::Page(pdf.page(i as usize))),
+                (Value::PDF(pdf), Value::Integer(i)) => get_page(&pdf, i, range),
                 _ => unreachable!("can only index PDFs with Integers")
             }
         },
@@ -111,6 +109,14 @@ fn read(path: &str, range: &Range<usize>) -> InterpreterResult<Value> {
         Ok(pdf) => Ok(Value::PDF(pdf)),
         Err(ReadError::FileNotFound) => Err(Error::new(format!("couldn't find file {}", path), range.clone())),
         Err(_) => Err(Error::new(String::from("internal error"), range.clone()))
+    }
+}
+
+fn get_page(pdf: &PDF, i: i32, range: &Range<usize>) -> InterpreterResult<Value> {
+    match pdf.page(i) {
+        Ok(page) => Ok(Value::Page(page)),
+        Err(OutOfBounds) =>
+            Err(Error::new(format!("trying to access a page that does not exist in document (page {})", i), range.clone()))
     }
 }
 

@@ -22,6 +22,8 @@ pub enum ReadError {
     InternalError,
 }
 
+pub struct OutOfBounds;
+
 impl PDF {
     pub fn read(path: &str) -> Result<PDF, ReadError> {
         match Document::load(path) {
@@ -54,9 +56,18 @@ impl PDF {
             .collect()
     }
 
-    pub fn page(&self, i: usize) -> Page {
+    pub fn page(&self, i: i32) -> Result<Page, OutOfBounds> {
+        if i < 0 {
+            return Err(OutOfBounds);
+        }
+
+        let i = i as usize;
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        self.extract_page(ids[i])
+        if i >= ids.len() {
+            return Err(OutOfBounds);
+        }
+
+        Ok(self.extract_page(ids[i]))
     }
 
     fn extract_page(&self, id: ObjectId) -> Page {
