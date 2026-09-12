@@ -42,6 +42,7 @@ fn type_check_statement(state: &mut State, statement: &Statement<()>) -> TypingR
 
 fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingResult<Expression<Type>> {
     match expression {
+        Expression::IntegerLiteral(i, range) => Ok(Expression::IntegerLiteral(*i, range.clone())),
         Expression::StringLiteral(s, range) => Ok(Expression::StringLiteral(s.clone(), range.clone())),
 
         Expression::Variable(name, range, _) => {
@@ -91,6 +92,45 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             }
 
             Ok(Expression::FunctionCall(Box::new(typed_function), typed_arguments, range.clone(), *return_type))
+        },
+
+        Expression::Index(base, index, range) => {
+            let typed_base = type_check_expression(state, base)?;
+            if typed_base.t() != Type::PDF {
+                return type_error(&format!(
+                    "can only extract pages of PDFs, but got a {}",
+                    typed_base.t()
+                ), range);
+            }
+
+            let typed_index = type_check_expression(state, index)?;
+            if typed_index.t() != Type::Integer {
+                return type_error(&format!(
+                    "can only index with integers, but got a {}",
+                    typed_index.t()
+                ), range);
+            }
+
+            Ok(Expression::Index(Box::new(typed_base), Box::new(typed_index), range.clone()))
+        },
+
+        Expression::PDFConstructor(pages, range) => {
+            let mut typed_pages = Vec::new();
+            for page in pages {
+                let typed_page = type_check_expression(state, page)?;
+                typed_pages.push(typed_page);
+            }
+
+            for typed_page in typed_pages.iter() {
+                if typed_page.t() != Type::Page {
+                    return type_error(&format!(
+                        "all the elements of a PDF must be pages, but got type can only index with integers, but got a {}",
+                        typed_page.t()
+                    ), typed_page.range());
+                }
+            }
+
+            Ok(Expression::PDFConstructor(typed_pages, range.clone()))
         },
 
         Expression::BuiltIn(_, _) => unreachable!("built-ins are only introduced in type-checking")

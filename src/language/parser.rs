@@ -90,7 +90,7 @@ fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
             },
             Rule::index => {
                 let index = parse_expression(modifier.into_inner().next().unwrap());
-                result = Expression::Index(Box::new(result), Box::new(index), range.clone(), ());
+                result = Expression::Index(Box::new(result), Box::new(index), range.clone());
             },
             _ => unreachable!()
         }
@@ -117,7 +117,7 @@ fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
         },
         Rule::array => {
             let elements = atom.into_inner().into_iter().map(parse_expression).collect();
-            Expression::PDFConstructor(elements, range.clone(), ())
+            Expression::PDFConstructor(elements, range.clone())
         },
         _ => unreachable!()
     }

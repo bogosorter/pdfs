@@ -28,8 +28,8 @@ pub enum Expression<T> {
     StringLiteral(String, Range<usize>),
     Variable(String, Range<usize>, T),
     FunctionCall(Box<Expression<T>>, Vec<Expression<T>>, Range<usize>, T),
-    Index(Box<Expression<T>>, Box<Expression<T>>, Range<usize>, T),
-    PDFConstructor(Vec<Expression<T>>, Range<usize>, T)
+    Index(Box<Expression<T>>, Box<Expression<T>>, Range<usize>),
+    PDFConstructor(Vec<Expression<T>>, Range<usize>)
 }
 
 #[derive(Clone, Copy)]
@@ -50,8 +50,20 @@ impl Expression<Type> {
             Expression::IntegerLiteral(_, _) => Type::Integer,
             Expression::Variable(_, _, t) => t.clone(),
             Expression::FunctionCall(_, _, _, t) => t.clone(),
-            Expression::Index(_, _, _, _) => Type::Page,
-            Expression::PDFConstructor(_, _, _) => Type::PDF
+            Expression::Index(_, _, _) => Type::Page,
+            Expression::PDFConstructor(_, _) => Type::PDF
+        }
+    }
+
+    pub fn range(&self) -> &Range<usize> {
+        match self {
+            Expression::BuiltIn(_, range) => range,
+            Expression::StringLiteral(_, range) => range,
+            Expression::IntegerLiteral(_, range) =>range,
+            Expression::Variable(_, range, _) => range,
+            Expression::FunctionCall(_, _, range, _) => range,
+            Expression::Index(_, _, range) => range,
+            Expression::PDFConstructor(_, range) => range
         }
     }
 }
