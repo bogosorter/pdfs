@@ -8,8 +8,11 @@ program = { SOI ~ statement* ~ EOI }
 
     identifier = { ASCII_ALPHA_LOWER ~ ASCII_ALPHA* }
     expression = { term ~ (">>" ~ term)* }
-        term = { atom ~ call* }
-            atom = { string_literal | identifier }
+        term = { atom ~ (call | index)* }
+            atom = { integer_literal | string_literal | identifier | array }
+                integer_literal = { ASCII_DIGIT+ }
                 string_literal = { "'" ~ (!"'" ~ ANY)* ~ "'"}
+                array = { "[" ~ (expression ~ ("," ~ expression)*)? ~ "]"}
             // For now, we only allow single-argumment function calls
             call = { "(" ~ expression ~ ("," ~ expression)* ~ ")" }
+            index = { "[" ~ expression ~ "]" }
