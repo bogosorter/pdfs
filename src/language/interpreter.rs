@@ -3,7 +3,7 @@ use std::ops::Range;
 use crate::{
     language::ast::*,
     utils::{
-        pdf::{PDF, ReadError},
+        pdf::{PDF, Page, ReadError},
         error::Error
     }
 };
@@ -12,7 +12,9 @@ use crate::{
 #[derive(Clone)]
 enum Value {
     Unit,
+    Integer(i32),
     String(String),
+    Page(Page),
     PDF(PDF),
     BuiltIn(BuiltInExpression)
 }
@@ -44,6 +46,7 @@ fn interpret_statement(state: &mut State, statement: &Statement<Type>) -> Interp
 
 fn interpret_expression(state: &State, expression: &Expression<Type>) -> InterpreterResult<Value> {
     match expression {
+        Expression::IntegerLiteral(i, _) => Ok(Value::Integer(*i)),
         Expression::StringLiteral(s, _) => Ok(Value::String(s.clone())),
         Expression::Variable(name, _, _) => Ok(state.get(name).unwrap().clone()),
         Expression::BuiltIn(t, _) => Ok(Value::BuiltIn(*t)),
@@ -77,6 +80,28 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
                 },
                 _ => unreachable!("only built-in function calls are allowed")
             }
+        },
+
+        Expression::Index(base, index, _) => {
+            let interpreted_base = interpret_expression(state, base)?;
+            let interpreted_index = interpret_expression(state, index)?;
+            match (interpreted_base, interpreted_index) {
+                (Value::PDF(pdf), Value::Integer(i)) => Ok(Value::Page(pdf.page(i as usize))),
+                _ => unreachable!("can only index PDFs with Integers")
+            }
+        },
+
+        Expression::PDFConstructor(pages, _) => {
+            let mut interpreted_pages = Vec::new();
+            for page in pages {
+                let interpreted_page = interpret_expression(state, page)?;
+                match interpreted_page {
+                    Value::Page(p) => interpreted_pages.push(p),
+                    _ => unreachable!()
+                }
+            }
+
+            Ok(Value::PDF(PDF::from(interpreted_pages)))
         }
     }
 }

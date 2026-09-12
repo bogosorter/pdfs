@@ -11,6 +11,7 @@ pub struct PDF {
     doc: Document,
 }
 
+#[derive(Clone)]
 pub struct Page {
     doc: Document,
     page_id: ObjectId,
