@@ -98,7 +98,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             let typed_base = type_check_expression(state, base)?;
             if typed_base.t() != Type::PDF {
                 return type_error(&format!(
-                    "can only extract pages of PDFs, but got a {}",
+                    "can only extract pages of type PDF, but got type {}",
                     typed_base.t()
                 ), range);
             }
@@ -106,7 +106,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             let typed_index = type_check_expression(state, index)?;
             if typed_index.t() != Type::Integer {
                 return type_error(&format!(
-                    "can only index with integers, but got a {}",
+                    "can only index with type Integer, but got type {}",
                     typed_index.t()
                 ), range);
             }
@@ -124,7 +124,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             for typed_page in typed_pages.iter() {
                 if typed_page.t() != Type::Page {
                     return type_error(&format!(
-                        "all the elements of a PDF must be pages, but got type can only index with integers, but got a {}",
+                        "all the elements of a PDF must be of type Page, but got type {}",
                         typed_page.t()
                     ), typed_page.range());
                 }
