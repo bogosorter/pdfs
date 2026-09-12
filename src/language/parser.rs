@@ -82,9 +82,18 @@ fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
     let atom = children.next().unwrap().into_inner().next().unwrap();
     let mut result = parse_atom(atom);
 
-    for call in children {
-        let arguments = call.into_inner().map(parse_expression).collect();
-        result = Expression::FunctionCall(Box::new(result), arguments, range.clone(), ());
+    for modifier in children {
+        match modifier.as_rule() {
+            Rule::call => {
+                let arguments = modifier.into_inner().map(parse_expression).collect();
+                result = Expression::FunctionCall(Box::new(result), arguments, range.clone(), ());
+            },
+            Rule::index => {
+                let index = parse_expression(modifier.into_inner().next().unwrap());
+                result = Expression::Index(Box::new(result), Box::new(index), range.clone(), ());
+            },
+            _ => unreachable!()
+        }
     }
 
     result
@@ -93,6 +102,10 @@ fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
 fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
     let range = atom.as_span().start()..atom.as_span().end();
     match atom.as_rule() {
+        Rule::integer_literal => {
+            let content = atom.as_str();
+            Expression::IntegerLiteral(content.parse().unwrap(), range)
+        },
         Rule::string_literal => {
             let content = atom.as_str();
             let trimmed = &content[1..content.len() - 1];
@@ -101,7 +114,11 @@ fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
         Rule::identifier => {
             let content = atom.as_str();
             Expression::Variable(String::from(content), range, ())
-        }
+        },
+        Rule::array => {
+            let elements = atom.into_inner().into_iter().map(parse_expression).collect();
+            Expression::PDFConstructor(elements, range.clone(), ())
+        },
         _ => unreachable!()
     }
 }
