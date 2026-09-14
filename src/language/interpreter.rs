@@ -89,6 +89,37 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
             }
         },
 
+        Expression::Range(base, start, end, range) => {
+            let interpreted_base = interpret_expression(state, base)?;
+
+            let interpreted_start =
+                if let Some(e) = start {
+                    let interpreted = interpret_expression(state, e)?;
+                    match interpreted {
+                        Value::Integer(i) => Some(i),
+                        _ => unreachable!("can only index PDFs with Integers")
+                    }
+                } else {
+                    None
+                };
+
+            let interpreted_end =
+                if let Some(e) = end {
+                    let interpreted = interpret_expression(state, e)?;
+                    match interpreted {
+                        Value::Integer(i) => Some(i),
+                        _ => unreachable!("can only index PDFs with Integers")
+                    }
+                } else {
+                    None
+                };
+
+            match interpreted_base {
+                Value::PDF(pdf) => get_range(&pdf, interpreted_start, interpreted_end, range),
+                _ => unreachable!("can only index PDFs")
+            }
+        },
+
         Expression::PDFConstructor(pages, _) => {
             let mut interpreted_pages = Vec::new();
             for page in pages {
@@ -117,6 +148,14 @@ fn get_page(pdf: &PDF, i: i32, range: &Range<usize>) -> InterpreterResult<Value>
         Ok(page) => Ok(Value::Page(page)),
         Err(OutOfBounds) =>
             Err(Error::new(format!("trying to access a page that does not exist in document (page {})", i), range.clone()))
+    }
+}
+
+fn get_range(pdf: &PDF, start: Option<i32>, end: Option<i32>, range: &Range<usize>) -> InterpreterResult<Value> {
+    match pdf.range(start, end) {
+        Ok(pdf) => Ok(Value::PDF(pdf)),
+        Err(OutOfBounds) =>
+            Err(Error::new(format!("trying to access a range that does not exist in document"), range.clone()))
     }
 }
 

@@ -57,17 +57,40 @@ impl PDF {
     }
 
     pub fn page(&self, i: i32) -> Result<Page, OutOfBounds> {
+        let index = self.validate_index(i)?;
+        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
+        Ok(self.extract_page(ids[index]))
+    }
+
+    pub fn range(&self, start: Option<i32>, end: Option<i32>) -> Result<PDF, OutOfBounds> {
+        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
+        let pages = ids.len();
+
+        let start = if let Some(i) = start { self.validate_index(i)? } else { 0 };
+        let end = if let Some(i) = end { self.validate_index(i)? } else { pages - 1 };
+
+        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
+        let pages = (start..end).map(|i| self.extract_page(ids[i])).collect();
+        Ok(PDF::from(pages))
+    }
+
+    pub fn validate_index(&self, mut i: i32) -> Result<usize, OutOfBounds> {
+        let pages = self.doc.get_pages().len();
+
         if i < 0 {
-            return Err(OutOfBounds);
+            i += pages as i32;
+
+            if i < 0 {
+                return Err(OutOfBounds);
+            }
         }
 
         let i = i as usize;
-        let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        if i >= ids.len() {
+        if i >= pages {
             return Err(OutOfBounds);
         }
 
-        Ok(self.extract_page(ids[i]))
+        Ok(i)
     }
 
     fn extract_page(&self, id: ObjectId) -> Page {

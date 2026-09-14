@@ -99,10 +99,10 @@ fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
                 for child in modifier.into_inner() {
                     match child.as_rule() {
                         Rule::range_start => {
-                            start = Some(Box::new(parse_expression(child)));
+                            start = Some(Box::new(parse_expression(child.into_inner().next().unwrap())));
                         },
                         Rule::range_end => {
-                            end = Some(Box::new(parse_expression(child)));
+                            end = Some(Box::new(parse_expression(child.into_inner().next().unwrap())));
                         },
                         _ => unreachable!()
                     }
