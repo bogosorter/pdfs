@@ -29,6 +29,7 @@ pub enum Expression<T> {
     Variable(String, Range<usize>, T),
     FunctionCall(Box<Expression<T>>, Vec<Expression<T>>, Range<usize>, T),
     Index(Box<Expression<T>>, Box<Expression<T>>, Range<usize>),
+    Range(Box<Expression<T>>, Option<Box<Expression<T>>>, Option<Box<Expression<T>>>, Range<usize>),
     PDFConstructor(Vec<Expression<T>>, Range<usize>)
 }
 
@@ -51,6 +52,7 @@ impl Expression<Type> {
             Expression::Variable(_, _, t) => t.clone(),
             Expression::FunctionCall(_, _, _, t) => t.clone(),
             Expression::Index(_, _, _) => Type::Page,
+            Expression::Range(_, _, _, _) => Type::PDF,
             Expression::PDFConstructor(_, _) => Type::PDF
         }
     }
@@ -63,6 +65,7 @@ impl Expression<Type> {
             Expression::Variable(_, range, _) => range,
             Expression::FunctionCall(_, _, range, _) => range,
             Expression::Index(_, _, range) => range,
+            Expression::Range(_, _, _, range) => range,
             Expression::PDFConstructor(_, range) => range
         }
     }
