@@ -124,6 +124,13 @@ fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
             let content = atom.as_str();
             Expression::IntegerLiteral(content.parse().unwrap(), range)
         },
+        Rule::negative_integer => {
+            let absolute_value = match parse_atom(atom.into_inner().next().unwrap()) {
+                Expression::IntegerLiteral(i, _) => i,
+                _ => unreachable!()
+            };
+            Expression::IntegerLiteral(-absolute_value, range)
+        },
         Rule::string_literal => {
             let content = atom.as_str();
             let trimmed = &content[1..content.len() - 1];
