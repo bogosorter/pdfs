@@ -67,7 +67,7 @@ impl PDF {
         let pages = ids.len();
 
         let start = if let Some(i) = start { self.validate_index(i)? } else { 0 };
-        let end = if let Some(i) = end { self.validate_index(i)? } else { pages - 1 };
+        let end = if let Some(i) = end { self.validate_index(i)? } else { pages };
 
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
         let pages = (start..end).map(|i| self.extract_page(ids[i])).collect();
