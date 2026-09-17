@@ -45,7 +45,7 @@ b = read('test_b.pdf');
 result = a >> b;
 ```
 
-PDFs may be index as if they were an array. This example extracts the first and last pages from a PDF and creates a new one:
+PDFs may be indexed as if they were an array. This example extracts the first and last pages from a PDF and creates a new one:
 
 ```
 source = read('test.pdf');
