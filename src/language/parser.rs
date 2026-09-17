@@ -59,7 +59,7 @@ fn parse_statement(statement: Pair<'_, Rule>) -> Statement<()> {
             let mut children = statement.into_inner();
             let loop_variable = children.next().unwrap().as_str().trim();
             let iterator = parse_term(children.next().unwrap());
-            let statements = children.map(parse_statement).collect();
+            let statements = children.map(|s| parse_statement(s.into_inner().next().unwrap())).collect();
 
             Statement::Iteration(String::from(loop_variable), iterator, statements, range)
         },
