@@ -67,22 +67,38 @@ impl PDF {
         let pages = ids.len() as i32;
 
         let step = if let Some(i) = step { i } else { 1 };
-        let start = if let Some(i) = start { self.validate_index(i)? as i32 } else { if step.is_positive() { 0 } else { pages - 1 } };
-        let end = if let Some(i) = end { self.validate_index(i)? as i32 } else { if step.is_positive() { pages } else { -1 } };
+        let start = if let Some(i) = start { self.positive_index(i) as i32 } else { if step.is_positive() { 0 } else { pages - 1 } };
+        let end = if let Some(i) = end { self.positive_index(i) as i32 } else { if step.is_positive() { pages } else { -1 } };
 
         // When the step is in the wrong direction, an empty PDF is returned
         if step.is_positive() != (end - start).is_positive() {
             return Ok(PDF::from(Vec::new()));
         }
 
+        // I admit, this logic is ugly...
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        let pages = if step.is_positive() {
-            (start..end).step_by(step as usize).map(|i| self.extract_page(ids[i as usize])).collect()
+        let pages: Result<Vec<Page>, OutOfBounds> = if step.is_positive() {
+            (start..end).step_by(step as usize).map(|i| -> Result<Page, OutOfBounds> {
+                let i = self.validate_index(i)?;
+                Ok(self.extract_page(ids[i as usize]))
+            }).collect::<Result<Vec<Page>, OutOfBounds>>()
         } else {
-            (end + 1..start + 1).rev().step_by(step.abs() as usize).map(|i| self.extract_page(ids[i as usize])).collect()
+            (end + 1..start + 1).rev().step_by(step.abs() as usize).map(|i| -> Result<Page, OutOfBounds> {
+                let i = self.validate_index(i)?;
+                Ok(self.extract_page(ids[i as usize]))
+            }).collect::<Result<Vec<Page>, OutOfBounds>>()
         };
 
-        Ok(PDF::from(pages))
+        Ok(PDF::from(pages?))
+    }
+
+    pub fn positive_index(&self, i: i32) -> usize {
+        if i >= 0 {
+            i as usize
+        } else {
+            let pages = self.doc.get_pages().len();
+            (i + pages as i32) as usize
+        }
     }
 
     pub fn validate_index(&self, mut i: i32) -> Result<usize, OutOfBounds> {
