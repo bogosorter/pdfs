@@ -114,7 +114,7 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
             Ok(Expression::Index(Box::new(typed_base), Box::new(typed_index), range.clone()))
         },
 
-        Expression::Range(base, start, end, range) => {
+        Expression::Range(base, start, end, step, range) => {
             let typed_base = type_check_expression(state, base)?;
             if typed_base.t() != Type::PDF {
                 return type_error(&format!(
@@ -151,7 +151,21 @@ fn type_check_expression(state: &State, expression: &Expression<()>) -> TypingRe
                 }
             };
 
-            Ok(Expression::Range(Box::new(typed_base), start, end, range.clone()))
+            let step = match step {
+                None => None,
+                Some(index) => {
+                    let typed_index = type_check_expression(state, index)?;
+                    if typed_index.t() != Type::Integer {
+                        return type_error(&format!(
+                            "can only index with type Integer, but got type {}",
+                            typed_index.t()
+                        ), range);
+                    }
+                    Some(Box::new(typed_index))
+                }
+            };
+
+            Ok(Expression::Range(Box::new(typed_base), start, end, step, range.clone()))
         },
 
         Expression::PDFConstructor(pages, range) => {
