@@ -46,7 +46,7 @@ fn parse_statement(statement: Pair<'_, Rule>) -> Statement<()> {
     match statement.as_rule() {
         Rule::assignment => {
             let mut children = statement.into_inner();
-            let identifier = children.next().unwrap().as_str();
+            let identifier = children.next().unwrap().as_str().trim();
             let expression = parse_expression(children.next().unwrap());
 
             Statement::Assignment(String::from(identifier), expression, range)
@@ -141,7 +141,7 @@ fn parse_atom(atom: Pair<'_, Rule>) -> Expression<()> {
             Expression::StringLiteral(String::from(trimmed), range)
         },
         Rule::identifier => {
-            let content = atom.as_str();
+            let content = atom.as_str().trim();
             Expression::Variable(String::from(content), range, ())
         },
         Rule::array => {
