@@ -28,7 +28,7 @@ You can find Linux binaries on the releases page. Once you have installed _pdfs_
 $ pdfs merge.pdfs
 ```
 
-## Details
+## Language Details
 
 _pdfs_ files have a `.pdfs` extension. _pdfs_ provides two built-in function, `read` and `write`, which are enough to copy a file from one location to another:
 
@@ -62,7 +62,5 @@ reversed = source[::-1];
 odd = source[::2];
 even = source[1::2];
 ```
-
-Finally, slices can be used to extract whole sections of PDFs using a start position, 
 
 [^1]: Yes, there is a need for that. The printers at my university only allow two-sided printing, which is awful when you are trying to print sheet music. The solution I came up with is to insert blank pages every other page.
