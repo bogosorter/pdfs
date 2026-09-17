@@ -37,7 +37,8 @@ pub enum Expression<T> {
 pub enum BuiltInExpression {
     Read,
     Write,
-    Concatenate
+    Concatenate,
+    BlankPage
 }
 
 
@@ -47,6 +48,7 @@ impl Expression<Type> {
             Expression::BuiltIn(BuiltInExpression::Read, _) => Type::Function(vec![Type::String], Box::new(Type::PDF)),
             Expression::BuiltIn(BuiltInExpression::Write, _) => Type::Function(vec![Type::String, Type::PDF], Box::new(Type::Unit)),
             Expression::BuiltIn(BuiltInExpression::Concatenate, _) => Type::Function(vec![Type::PDF, Type::PDF], Box::new(Type::PDF)),
+            Expression::BuiltIn(BuiltInExpression::BlankPage, _) => Type::Page,
             Expression::StringLiteral(_, _) => Type::String,
             Expression::IntegerLiteral(_, _) => Type::Integer,
             Expression::Variable(_, _, t) => t.clone(),
