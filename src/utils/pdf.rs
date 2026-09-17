@@ -225,3 +225,16 @@ fn finalize_document(doc: &mut Document, page_ids: Vec<ObjectId>) {
 
     doc.trailer.set("Root", Object::Reference(catalog_id));
 }
+
+impl Page {
+    pub fn blank() -> Page {
+        let mut doc = Document::with_version("1.5");
+        let page_id = doc.new_object_id();
+        doc.objects.insert(page_id, Object::Dictionary(dictionary! {
+            "Type" => "Page",
+            "MediaBox" => vec![0.into(), 0.into(), 612.into(), 792.into()], // US Letter
+            "Resources" => Dictionary::new(),
+        }));
+        Page { doc, page_id }
+    }
+}
