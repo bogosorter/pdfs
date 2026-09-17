@@ -89,7 +89,7 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
             }
         },
 
-        Expression::Range(base, start, end, range) => {
+        Expression::Range(base, start, end, step, range) => {
             let interpreted_base = interpret_expression(state, base)?;
 
             let interpreted_start =
@@ -114,8 +114,19 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
                     None
                 };
 
+            let interpreted_step =
+                if let Some(e) = step {
+                    let interpreted = interpret_expression(state, e)?;
+                    match interpreted {
+                        Value::Integer(i) => Some(i),
+                        _ => unreachable!("can only index PDFs with Integers")
+                    }
+                } else {
+                    None
+                };
+
             match interpreted_base {
-                Value::PDF(pdf) => get_range(&pdf, interpreted_start, interpreted_end, range),
+                Value::PDF(pdf) => get_range(&pdf, interpreted_start, interpreted_end, interpreted_step, range),
                 _ => unreachable!("can only index PDFs")
             }
         },
@@ -151,8 +162,8 @@ fn get_page(pdf: &PDF, i: i32, range: &Range<usize>) -> InterpreterResult<Value>
     }
 }
 
-fn get_range(pdf: &PDF, start: Option<i32>, end: Option<i32>, range: &Range<usize>) -> InterpreterResult<Value> {
-    match pdf.range(start, end) {
+fn get_range(pdf: &PDF, start: Option<i32>, end: Option<i32>, step: Option<i32>, range: &Range<usize>) -> InterpreterResult<Value> {
+    match pdf.range(start, end, step) {
         Ok(pdf) => Ok(Value::PDF(pdf)),
         Err(OutOfBounds) =>
             Err(Error::new(format!("trying to access a range that does not exist in document"), range.clone()))

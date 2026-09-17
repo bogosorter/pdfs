@@ -62,15 +62,26 @@ impl PDF {
         Ok(self.extract_page(ids[index]))
     }
 
-    pub fn range(&self, start: Option<i32>, end: Option<i32>) -> Result<PDF, OutOfBounds> {
+    pub fn range(&self, start: Option<i32>, end: Option<i32>, step: Option<i32>) -> Result<PDF, OutOfBounds> {
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        let pages = ids.len();
+        let pages = ids.len() as i32;
 
-        let start = if let Some(i) = start { self.validate_index(i)? } else { 0 };
-        let end = if let Some(i) = end { self.validate_index(i)? } else { pages };
+        let step = if let Some(i) = step { i } else { 1 };
+        let start = if let Some(i) = start { self.validate_index(i)? as i32 } else { if step.is_positive() { 0 } else { pages - 1 } };
+        let end = if let Some(i) = end { self.validate_index(i)? as i32 } else { if step.is_positive() { pages } else { -1 } };
+
+        // When the step is in the wrong direction, an empty PDF is returned
+        if step.is_positive() != (end - start).is_positive() {
+            return Ok(PDF::from(Vec::new()));
+        }
 
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
-        let pages = (start..end).map(|i| self.extract_page(ids[i])).collect();
+        let pages = if step.is_positive() {
+            (start..end).step_by(step as usize).map(|i| self.extract_page(ids[i as usize])).collect()
+        } else {
+            (end + 1..start + 1).rev().step_by(step.abs() as usize).map(|i| self.extract_page(ids[i as usize])).collect()
+        };
+
         Ok(PDF::from(pages))
     }
 
