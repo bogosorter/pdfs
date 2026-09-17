@@ -65,6 +65,4 @@ even = source[1::2];
 
 Finally, slices can be used to extract whole sections of PDFs using a start position, 
 
-The current version of _pdfs_ supports concatenationonly concatenation, as shown above, but examples of how I intend the language to look like can be found under the `examples` directory.
-
 [^1]: Yes, there is a need for that. The printers at my university only allow two-sided printing, which is awful when you are trying to print sheet music. The solution I came up with is to insert blank pages every other page.
