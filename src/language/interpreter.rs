@@ -30,6 +30,23 @@ pub fn interpret(program: &TypedProgram) -> InterpreterResult<()> {
 
 fn interpret_statement(state: &mut State, statement: &Statement<Type>) -> InterpreterResult<()> {
     match statement {
+        Statement::Iteration(loop_variable, iterator, statements, _) => {
+            let interpreted_iterator = interpret_expression(state, iterator)?;
+            let pages = if let Value::PDF(pdf) = interpreted_iterator {
+                pdf.pages()
+            } else {
+                unreachable!("iterator has been type-checked to be a pdf");
+            };
+
+            for page in pages {
+                state.insert(loop_variable.clone(), Value::Page(page));
+                for s in statements {
+                    interpret_statement(state, s)?;
+                }
+            }
+
+            Ok(())
+        },
         Statement::Assignment(name, expression, _) => {
             let value = interpret_expression(state, expression)?;
             state.insert(name.clone(), value);
