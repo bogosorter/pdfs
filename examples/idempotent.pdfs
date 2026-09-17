@@ -1,2 +1,2 @@
-pdf = read('example.pdf');
-write('example.pdf', pdf);
+pdf = read('test.pdf');
+write('test.pdf', pdf);

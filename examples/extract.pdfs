@@ -1,4 +1,3 @@
-source = read('source.pdf');
-firstPage = source[1];
-secondPage = source[3];
-write('result.pdf', [firstPage, secondPage]);
+source = read('test.pdf');
+result = source[::2];
+write('result.pdf', result);

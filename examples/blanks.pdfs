@@ -1,11 +1,8 @@
--- A program to insert blank pages every other page. For simplicity, a blank
--- page is also inserted at the end.
-
-source = read('source.pdf');
+source = read('test.pdf');
 
 result = [];
 for page in source {
-    result += [page, blankPage()];
+    result = result >> [page, blankPage];
 }
 
-write('result.pdf', result);
+write('output.pdf', result);

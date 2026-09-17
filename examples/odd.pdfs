@@ -1,3 +1,3 @@
-source = read('source.pdf');
+source = read('test.pdf');
 result = source[::2];
 write('result.pdf', result);

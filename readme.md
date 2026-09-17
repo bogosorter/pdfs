@@ -18,7 +18,7 @@ right = read('right.pdf');
 write('output.pdf', left >> right);
 ```
 
-The best alternative I know of is [iLovePDF](https://www.ilovepdf.com/). It works quite well, but, come on, it is a web app ;) Seriously, though, it fails when you want to perform more complex operations such as reversing the pages or the aforementioned task of inserting a blank page in between every page with content.
+The best alternative I know of is [iLovePDF](https://www.ilovepdf.com/). It works quite well, but, come on, it is a web app ;) Seriously, though, it fails when you want to perform more complex operations such as reversing the pages of a document.
 
 ## Usage
 
@@ -52,7 +52,7 @@ source = read('test.pdf');
 result = [source[0], source[-1]];
 ```
 
-Finally, slices can be used to extract whole sections of a PDF using start, (exclusive) end, and step in a [Python-like](https://www.geeksforgeeks.org/python/python-list-slicing/) manner:
+Slices can be used to extract whole sections of a PDF using start, (exclusive) end, and step in a [Python-like](https://www.geeksforgeeks.org/python/python-list-slicing/) manner:
 
 ```
 firstToThird = source[:3];
@@ -61,6 +61,19 @@ all = source[:];
 reversed = source[::-1];
 odd = source[::2];
 even = source[1::2];
+```
+
+Finally, PDFs can be iterated to repeatedly perform an action with every page. This, together with the use of the built-in `blankPage` variable, achieves the aforementioned goal of inserting a blank page every other page:
+
+```
+source = read('test.pdf');
+
+result = [];
+for page in source {
+    result = result >> [page, blankPage];
+}
+
+write('output.pdf', result);
 ```
 
 [^1]: Yes, there is a need for that. The printers at my university only allow two-sided printing, which is awful when you are trying to print sheet music. The solution I came up with is to insert blank pages every other page.
