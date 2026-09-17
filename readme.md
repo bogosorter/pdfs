@@ -76,4 +76,6 @@ for page in source {
 write('output.pdf', result);
 ```
 
+Other complete examples can be found under the `examples` directory.
+
 [^1]: Yes, there is a need for that. The printers at my university only allow two-sided printing, which is awful when you are trying to print sheet music. The solution I came up with is to insert blank pages every other page.
