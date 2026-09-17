@@ -92,27 +92,27 @@ fn parse_term(term: Pair<'_, Rule>) -> Expression<()> {
                 let index = parse_expression(modifier.into_inner().next().unwrap());
                 result = Expression::Index(Box::new(result), Box::new(index), range.clone());
             },
-            Rule::range => {
+            Rule::slice => {
                 let mut start = None;
                 let mut end = None;
                 let mut step = None;
 
                 for child in modifier.into_inner() {
                     match child.as_rule() {
-                        Rule::range_start => {
+                        Rule::slice_start => {
                             start = Some(Box::new(parse_expression(child.into_inner().next().unwrap())));
                         },
-                        Rule::range_end => {
+                        Rule::slice_end => {
                             end = Some(Box::new(parse_expression(child.into_inner().next().unwrap())));
                         },
-                        Rule::range_step => {
+                        Rule::slice_step => {
                             step = Some(Box::new(parse_expression(child.into_inner().next().unwrap())));
                         },
                         _ => unreachable!()
                     }
                 }
 
-                result = Expression::Range(Box::new(result), start, end, step, range.clone());
+                result = Expression::Slice(Box::new(result), start, end, step, range.clone());
             },
             _ => unreachable!()
         }

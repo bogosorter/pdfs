@@ -62,7 +62,7 @@ impl PDF {
         Ok(self.extract_page(ids[index]))
     }
 
-    pub fn range(&self, start: Option<i32>, end: Option<i32>, step: Option<i32>) -> Result<PDF, OutOfBounds> {
+    pub fn slice(&self, start: Option<i32>, end: Option<i32>, step: Option<i32>) -> Result<PDF, OutOfBounds> {
         let ids: Vec<ObjectId> = self.doc.get_pages().into_values().collect();
         let pages = ids.len() as i32;
 
