@@ -17,6 +17,7 @@ program = { SOI ~ statement* ~ EOI }
             // For now, we only allow single-argumment function calls
             call = { "(" ~ expression ~ ("," ~ expression)* ~ ")" }
             index = { "[" ~ expression ~ "]" }
-            range = { "[" ~ range_start? ~ ":" ~ range_end? ~ "]" }
+            range = { "[" ~ range_start? ~ ":" ~ range_end? ~ (":" ~ range_step)? ~ "]" }
                 range_start = { expression }
                 range_end = { expression }
+                range_step = { expression }
