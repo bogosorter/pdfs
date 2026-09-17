@@ -47,6 +47,7 @@ fn interpret_expression(state: &State, expression: &Expression<Type>) -> Interpr
         Expression::IntegerLiteral(i, _) => Ok(Value::Integer(*i)),
         Expression::StringLiteral(s, _) => Ok(Value::String(s.clone())),
         Expression::Variable(name, _, _) => Ok(state.get(name).unwrap().clone()),
+        Expression::BuiltIn(BuiltInExpression::BlankPage, _) => Ok(Value::Page(Page::blank())),
         Expression::BuiltIn(t, _) => Ok(Value::BuiltIn(*t)),
 
         Expression::FunctionCall(function, arguments, range, _) => {
