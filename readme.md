@@ -52,7 +52,7 @@ source = read('test.pdf');
 result = [source[0], source[-1]];
 ```
 
-Finally, ranges can be used to extract whole sections of a PDF using start, (exclusive) end, and step in a [Python-like](https://www.geeksforgeeks.org/python/python-list-slicing/) manner:
+Finally, slices can be used to extract whole sections of a PDF using start, (exclusive) end, and step in a [Python-like](https://www.geeksforgeeks.org/python/python-list-slicing/) manner:
 
 ```
 firstToThird = source[:3];
