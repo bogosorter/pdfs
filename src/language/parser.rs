@@ -55,6 +55,14 @@ fn parse_statement(statement: Pair<'_, Rule>) -> Statement<()> {
             let content = parse_expression(statement.into_inner().next().unwrap());
             Statement::ExpressionStatement(content, range)
         },
+        Rule::for_loop => {
+            let mut children = statement.into_inner();
+            let loop_variable = children.next().unwrap().as_str().trim();
+            let iterator = parse_term(children.next().unwrap());
+            let statements = children.map(parse_statement).collect();
+
+            Statement::Iteration(String::from(loop_variable), iterator, statements, range)
+        },
         _ => unreachable!()
     }
 }

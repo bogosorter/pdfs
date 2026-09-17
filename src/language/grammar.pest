@@ -2,17 +2,18 @@ WHITESPACE = _{ " " | NEWLINE }
 
 program = { SOI ~ statement* ~ EOI }
 
-    statement = { assignment | expression_statement }
+    statement = { for_loop | assignment | expression_statement }
+        for_loop = { "for" ~ identifier ~ "in" ~ term ~ "{" ~ statement* ~ "}" }
         assignment = { identifier ~ "=" ~ expression ~ ";" }
         expression_statement = { expression ~ ";" }
 
-    identifier = { ASCII_ALPHA_LOWER ~ ASCII_ALPHA* }
+    identifier = @{ ASCII_ALPHA_LOWER ~ ASCII_ALPHA* }
     expression = { term ~ (">>" ~ term)* }
         term = { atom ~ (call | index | slice)* }
             atom = { integer_literal | negative_integer | string_literal | identifier | array }
-                negative_integer = { "-" ~ integer_literal }
-                integer_literal = { ASCII_DIGIT+ }
-                string_literal = { "'" ~ (!"'" ~ ANY)* ~ "'"}
+                negative_integer = @{ "-" ~ integer_literal }
+                integer_literal = @{ ASCII_DIGIT+ }
+                string_literal = @{ "'" ~ (!"'" ~ ANY)* ~ "'"}
                 array = { "[" ~ (expression ~ ("," ~ expression)*)? ~ "]"}
             // For now, we only allow single-argumment function calls
             call = { "(" ~ expression ~ ("," ~ expression)* ~ ")" }

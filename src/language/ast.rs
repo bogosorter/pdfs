@@ -18,8 +18,9 @@ pub enum Type {
 }
 
 pub enum Statement<T> {
+    Iteration(String, Expression<T>, Vec<Statement<T>>, Range<usize>),
     Assignment(String, Expression<T>, Range<usize>),
-    ExpressionStatement(Expression<T>, Range<usize>)
+    ExpressionStatement(Expression<T>, Range<usize>),
 }
 
 pub enum Expression<T> {
@@ -41,6 +42,15 @@ pub enum BuiltInExpression {
     BlankPage
 }
 
+impl<T> Statement<T> {
+    pub fn range(&self) -> &Range<usize> {
+        match self {
+            Statement::Iteration(_, _, _, range) => range,
+            Statement::Assignment(_, _, range) => range,
+            Statement::ExpressionStatement(_, range) => range,
+        }
+    }
+}
 
 impl Expression<Type> {
     pub fn t(&self) -> Type {
@@ -58,7 +68,9 @@ impl Expression<Type> {
             Expression::PDFConstructor(_, _) => Type::PDF
         }
     }
+}
 
+impl<T> Expression<T> {
     pub fn range(&self) -> &Range<usize> {
         match self {
             Expression::BuiltIn(_, range) => range,
