@@ -28,6 +28,43 @@ You can find Linux binaries on the releases page. Once you have installed _pdfs_
 $ pdfs merge.pdfs
 ```
 
-The current version of _pdfs_ supports only concatenation, as shown above, but examples of how I intend the language to look like can be found under the `examples` directory.
+## Details
+
+_pdfs_ files have a `.pdfs` extension. _pdfs_ provides two built-in function, `read` and `write`, which are enough to copy a file from one location to another:
+
+```
+source = read('test.pdf');
+write('result.pdf', source);
+```
+
+The `>>` operator is used to concatenate two pdfs:
+
+```
+a = read('test_a.pdf');
+b = read('test_b.pdf');
+result = a >> b;
+```
+
+PDFs may be index as if they were an array. This example extracts the first and last pages from a PDF and creates a new one:
+
+```
+source = read('test.pdf');
+result = [source[0], source[-1]];
+```
+
+Finally, ranges can be used to extract whole sections of a PDF using start, (exclusive) end, and step in a [Python-like](https://www.geeksforgeeks.org/python/python-list-slicing/) manner:
+
+```
+firstToThird = source[:3];
+thirdToLast = source[2:];
+all = source[:];
+reversed = source[::-1];
+odd = source[::2];
+even = source[1::2];
+```
+
+Finally, slices can be used to extract whole sections of PDFs using a start position, 
+
+The current version of _pdfs_ supports concatenationonly concatenation, as shown above, but examples of how I intend the language to look like can be found under the `examples` directory.
 
 [^1]: Yes, there is a need for that. The printers at my university only allow two-sided printing, which is awful when you are trying to print sheet music. The solution I came up with is to insert blank pages every other page.
