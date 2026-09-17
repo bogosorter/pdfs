@@ -23,6 +23,24 @@ pub fn type_check(program: &UntypedProgram) -> TypingResult<TypedProgram> {
 
 fn type_check_statement(state: &mut State, statement: &Statement<()>) -> TypingResult<Statement<Type>> {
     match statement {
+        Statement::Iteration(loop_variable, iterator, statements, range) => {
+            let typed_iterator = type_check_expression(state, iterator)?;
+            if typed_iterator.t() != Type::PDF {
+                return type_error(&format!("can only iterate over type PDF, but got type {}", typed_iterator.t()), range);
+            }
+
+            let mut typed_statements = Vec::new();
+            for s in statements {
+                // We have to insert the type every time because the statement
+                // might change the type associated with this variable
+                state.insert(loop_variable.clone(), Type::Page);
+
+                let typed_statement = type_check_statement(state, s)?;
+                typed_statements.push(typed_statement);
+            }
+
+            Ok(Statement::Iteration(loop_variable.clone(), typed_iterator, typed_statements, range.clone()))
+        },
         Statement::Assignment(name, expression, range) => {
             let typed_expression = type_check_expression(state, expression)?;
 
